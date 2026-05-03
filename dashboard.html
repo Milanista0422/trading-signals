@@ -244,7 +244,7 @@ const SL = {STRONG_BUY:'⬆⬆ STRONG BUY',BUY:'⬆ BUY',HOLD:'— HOLD',
 
 function fmt(v, cur) {
   if (cur==='JPY') return v.toLocaleString('ja-JP')+'円';
-  return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:-2});
+  return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function rsiCls(v){return v>70?'rsi-ob':v<30?'rsi-os':'rsi-neu'}
 function bbCls(z){const m={'BB上抜け':'bb-ab','BB上半':'bb-uh','BB下半':'bb-lh','BB下抜け':'bb-bl'};return m[z]|'bb-lh'}
