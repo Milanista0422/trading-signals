@@ -130,10 +130,10 @@ tr:last-child td{border-bottom:none}
 
 /* === MOBILE === */
 @media(max-width:480px){
-  .tab-btn{padding:8px 12px;font-size:12py}
+  .tab-btn{padding:8px 12px;font-size:12px}
   th,td{padding:5px 4px;font-size:11px}
   .reason{max-width:100px}
-  .btn-sbi,.btn-sbi-off{padding:3px 6px;font-size:10py}
+  .btn-sbi,.btn-sbi-off{padding:3px 6px;font-size:10px}
   .sector-grid{grid-template-columns:repeat(2,1fr)}
 }
 </style>
@@ -247,7 +247,7 @@ function fmt(v, cur) {
   return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 function rsiCls(v){return v>70?'rsi-ob':v<30?'rsi-os':'rsi-neu'}
-function bbCls(z){const m={'BB上抜け':'bb-ab','BB上半':'bb-uh','BB下半':'bb-lh','BB下抜け':'bb-bl'};return m[z]|'bb-lh'}
+function bbCls(z){const m={'BB上抜け':'bb-ab','BB上半':'bb-uh','BB下半':'bb-lh','BB下抜け':'bb-bl'};return m[z]||'bb-lh'}
 function chgCls(v){return v>0?'chg-pos':v<0?'chg-neg':'chg-neu'}
 
 function sigRow(r) {
@@ -524,8 +524,37 @@ function sRenderCards() {
         </div>
       </div>
       ${dayChg!=null?`<div style="font-size:10px" class="${dayCls}">前日比 ${daySign}${dayChg}%</div>`:''}
+      <canvas class="sc-spark" id="spark-${s.ticker}"></canvas>
     </div>`;
   }).join('');
+
+  entries.forEach(({s,d}) => {
+    const el = document.getElementById(`spark-${s.ticker}`);
+    if (!el) return;
+    const ctx = el.getContext('2d');
+    const closes = d.closes.filter(v=>v!=null);
+    new Chart(ctx, {
+      type:'line',
+      data:{
+        labels: closes.map((_,i)=>i),
+        datasets:[{
+          data: closes,
+          borderColor: s.color,
+          borderWidth:1.5,
+          pointRadius:0,
+          fill:true,
+          backgroundColor: s.color+'18',
+          tension:0.3
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{x:{display:false},y:{display:false}},
+        animation:false,
+      }
+    });
+  });
 }
 
 // Period buttons
