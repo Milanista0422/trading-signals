@@ -524,37 +524,8 @@ function sRenderCards() {
         </div>
       </div>
       ${dayChg!=null?`<div style="font-size:10px" class="${dayCls}">前日比 ${daySign}${dayChg}%</div>`:''}
-      <canvas class="sc-spark" id="spark-${s.ticker}"></canvas>
     </div>`;
   }).join('');
-
-  entries.forEach(({s,d}) => {
-    const el = document.getElementById(`spark-${s.ticker}`);
-    if (!el) return;
-    const ctx = el.getContext('2d');
-    const closes = d.closes.filter(v=>v!=null);
-    new Chart(ctx, {
-      type:'line',
-      data:{
-        labels: closes.map((_,i)=>i),
-        datasets:[{
-          data: closes,
-          borderColor: s.color,
-          borderWidth:1.5,
-          pointRadius:0,
-          fill:true,
-          backgroundColor: s.color+'18',
-          tension:0.3
-        }]
-      },
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{enabled:false}},
-        scales:{x:{display:false},y:{display:false}},
-        animation:false,
-      }
-    });
-  });
 }
 
 // Period buttons
