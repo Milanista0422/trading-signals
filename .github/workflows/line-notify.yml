@@ -1,0 +1,32 @@
+name: LINE Notify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'line_message.json'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Send LINE notification
+        env:
+          LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: |
+          python3 - << 'PYEOF'
+          import json, subprocess, os, sys
+          with open("line_message.json", "r", encoding="utf-8") as f:
+              data = json.load(f)
+          message = data.get("message", "")
+          if len(message) > 4900:
+              message = message[:4900] + "\n...(省略)"
+          token = os.environ["LINE_TOKEN"]
+          user_id = os.environ["LINE_USER_ID"]
+          payload = json.dumps({"to": user_id, "messages": [{"type": "text", "text": message}]}, ensure_ascii=False)
+          result = subprocess.run(["curl","-s","-w","\nHTTP_STATUS:%{http_code}","-X","POST","https://api.line.me/v2/bot/message/push","-H",f"Authorization: Bearer {token}","-H","Content-Type: application/json","-d",payload], capture_output=True, text=True)
+          print(result.stdout)
+          sys.exit(0 if "HTTP_STATUS:200" in result.stdout else 1)
+          PYEOF
