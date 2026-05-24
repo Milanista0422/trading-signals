@@ -1,1 +1,4 @@
-"{""message"":""📬 Gmail通知（08:00）" & newline & newline & 4.data.content[1].text & """,""timestamp"":""" & now & """}"
+{
+  "message": "📬 Gmail通知テスト\n\nこれはLINE通知の動作テストです。\n送信元: Make.com → GitHub Actions → LINE",
+  "timestamp": "2026-05-24T03:09:00.716Z"
+}
