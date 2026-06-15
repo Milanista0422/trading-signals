@@ -1,11 +1,15 @@
 name: LINE Notify
 on:
+  push:
+    paths:
+      - 'line_message.json'
   repository_dispatch:
     types: [line-notify]
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Send LINE notification
         env:
           LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
@@ -15,6 +19,17 @@ jobs:
           python3 - << 'PYEOF'
           import json, subprocess, os, sys
           message = os.environ.get("LINE_MESSAGE", "")
+          if not message:
+              try:
+                  with open('line_message.json') as f:
+                      data = json.load(f)
+                  message = data.get('message', '')
+                  print(f"[DEBUG] From file: {len(message)} chars")
+              except Exception as e:
+                  print(f"[DEBUG] File read error: {e}")
+          print(f"[DEBUG] Message length: {len(message)}")
+          if not message:
+              message = "(メッセージが空です)"
           if len(message) > 4900:
               message = message[:4900] + "\n...(省略)"
           token = os.environ["LINE_TOKEN"]
@@ -27,6 +42,8 @@ jobs:
                "-H","Content-Type: application/json",
                "-d",payload],
               capture_output=True, text=True)
-          print(result.stdout)
+          print("[LINE API response]", result.stdout)
+          if result.stderr:
+              print("[curl stderr]", result.stderr)
           sys.exit(0 if "HTTP_STATUS:200" in result.stdout else 1)
           PYEOF
