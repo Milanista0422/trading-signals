@@ -1,0 +1,40 @@
+name: Nightly Report LINE Notify
+# 夜のマーケットレポート（trading-agent-team）を公開したら LINE に送る。
+# reports/line_message.json が main に push されたときだけ動く。既存の line-notify.yml とは別のファイルを見る。
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'reports/line_message.json'
+  workflow_dispatch:
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for GitHub Pages to publish the report
+        run: sleep 90
+      - name: Send LINE notification
+        env:
+          LINE_TOKEN: ${{ secrets.LINE_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: |
+          python3 - << 'PYEOF'
+          import json, os, sys, urllib.request
+          with open('reports/line_message.json', encoding='utf-8') as f:
+              message = json.load(f).get('message', '')
+          if not message:
+              print('message is empty'); sys.exit(1)
+          if len(message) > 4900:
+              message = message[:4900] + "\n...(省略)"
+          payload = json.dumps({"to": os.environ["LINE_USER_ID"],
+                                "messages": [{"type": "text", "text": message}]}, ensure_ascii=False).encode()
+          req = urllib.request.Request("https://api.line.me/v2/bot/message/push", data=payload, method="POST",
+                                       headers={"Authorization": f"Bearer {os.environ['LINE_TOKEN']}",
+                                                "Content-Type": "application/json"})
+          try:
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  print("LINE status", r.status)
+          except urllib.error.HTTPError as e:
+              print("LINE error", e.code, e.read().decode()[:300]); sys.exit(1)
+          PYEOF
